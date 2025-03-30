@@ -28,16 +28,17 @@ This plugin helps calculate UK capital gains tax and generate reports for:
 * A Fava plugin for interactive viewing
 
 ### Screenshots
-[TODO: Add screenshots of reports and Fava interface]
+<img src="screenshots/fava_report.png" width="60%" hspace="10" vspace="10"/>
+<img src="screenshots/excel_report.png" width="60%" hspace="10" vspace="10"/>
 
 ## Configuration
 
 ### Setup
-
-1. Install the plugin:
+Install the plugin:
 ```bash
 pip install git+https://github.com/Evernight/beancount-plugin-tax-uk
 ```
+You'll also need to add some metadata to your transactions to make it work.
 
 ### Transaction types
 
@@ -58,12 +59,12 @@ Example transactions:
 
 ```beancount
 2023-04-06 * "Buy shares" #buy
-  Assets:IBKR:Stocks    10 VUSA {50.00 GBP}
+  Assets:IBKR:Stocks    10 VWRL {50.00 GBP}
   Assets:IBKR:Cash    -500.00 GBP
   Expenses:Commissions          2.00 GBP
 
 2023-05-01 * "Sell shares" #sell
-  Assets:IBKR:Stocks    -5 VUSA {} @ 52.00 GBP
+  Assets:IBKR:Stocks    -5 VWRL {} @ 52.00 GBP
   Assets:IBKR:Cash    260.00 GBP
   Expenses:Commissions          2.00 GBP
 ```
@@ -81,7 +82,7 @@ Plugin is designed to work out of the box without additional configuration when 
 2000-01-01 custom "uk-tax-platform-mapping" "Assets:SomeCryptoPlatform:.*" "SomeCryptoPlatform" "Crypto"
 
 ; Map Beancount commodities to name and asset class used in the report
-2000-01-01 custom "uk-tax-asset-mapping" "VUSA" "Vanguard S&P 500 UCITS ETF" "Stocks"
+2000-01-01 custom "uk-tax-asset-mapping" "VWRL" "VG FTSE All-World" "Stocks"
 2000-01-01 custom "uk-tax-asset-mapping" "ETH" "Ethereum" "Crypto"
 
 ; Additional configuration for special account treatment
@@ -119,7 +120,7 @@ Note that at this point while some cases are treated identically, there are a fe
 make test
 ```
 
-Note differences in the test results mentioned here [TODO].
+Note differences in the test results mentioned [on the tests README](tests/README.md).
 
 If you have more anonymised test cases to contribute, particularly if the results are verified/confirmed in some way and/or contain some cases not covered by the current tests, please do contribute.
 
