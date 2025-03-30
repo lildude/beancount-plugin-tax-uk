@@ -1,0 +1,26 @@
+option "operating_currency" "GBP"
+option "inferred_tolerance_default" "GBP:0.0001"
+
+; Declare commodities
+2022-01-01 commodity TESTSTOCK
+
+2023-01-01 open Assets:Broker:TestStock    TESTSTOCK
+2023-01-01 open Assets:Broker:Cash    GBP
+2023-01-01 open Equity:OpeningBalances      GBP
+2023-01-01 open Income:Broker:PnL         GBP
+
+; Initial balance
+2023-01-01 * "Opening Balance"
+    Assets:Broker:Cash    1000.00 GBP
+    Equity:OpeningBalances    -1000.00 GBP
+
+; Buy some shares
+2023-02-01 * "Buy Test Stock" #buy
+    Assets:Broker:Cash    -500.00 GBP
+    Assets:Broker:TestStock    100 TESTSTOCK {5.00 GBP}
+
+; Sell some shares with a gain
+2023-03-01 * "Sell Test Stock with Gain" #sell
+    Assets:Broker:Cash    600.00 GBP
+    Assets:Broker:TestStock    -100 TESTSTOCK {} @ 6.00 GBP
+    Income:Broker:PnL       -100.00 GBP

@@ -1,0 +1,67 @@
+option "title" "WithAssetEventsMultipleYears.txt"
+option "operating_currency" "GBP"
+1970-01-01 open Assets:Stocks                                    "FIFO"
+
+1970-01-01 open Assets:Cash                                      "FIFO"
+
+1970-01-01 open Income:Dividends                                 "FIFO"
+
+1970-01-01 open Income:Capital                                   "FIFO"
+
+1970-01-01 open Expenses:Fees                                    "FIFO"
+
+1970-01-01 open Equity:ERI                                       "FIFO"
+
+1970-01-01 open Income:ERI                                       "FIFO"
+
+1970-01-01 custom "uk-tax-config" "ignored-currencies" "GBP"
+
+1970-01-01 commodity GB00B3TYHH97
+
+1970-01-01 commodity GBP
+
+2010-01-01 custom "fava-extension" "beancount_plugin_tax_uk.fava_extension" "{}"
+
+2010-01-01 custom "uk-tax-config" "commission-account" "Expenses:Fees"
+
+2018-08-29 * "Buy GB00B3TYHH97" #buy
+  Assets:Stocks    20 GB00B3TYHH97 {10 GBP}
+  Assets:Cash    -200 GBP
+
+2019-03-15 * "Buy GB00B3TYHH97" #buy
+  Assets:Stocks    20 GB00B3TYHH97 {10 GBP}
+  Assets:Cash    -200 GBP
+
+2019-05-31 * "Dividend from GB00B3TYHH97 (40 shares)" #ERI
+  eri_asset: "GB00B3TYHH97"
+  Equity:ERI         70 GBP
+  Income:Dividends  -70 GBP
+
+2019-05-31 * "Capital Return from GB00B3TYHH97" #capital_return
+  capital_return_asset: "GB00B3TYHH97"
+  Assets:Cash      50 GBP
+  Income:Capital  -50 GBP
+
+2019-12-01 * "Sell GB00B3TYHH97" #sell
+  Assets:Stocks   -40 GB00B3TYHH97 {} @ 12 GBP
+  Assets:Cash     480 GBP
+  Income:Capital
+
+2020-02-01 * "Buy GB00B3TYHH97" #buy
+  Assets:Stocks    100 GB00B3TYHH97 {20 GBP}
+  Assets:Cash    -2000 GBP
+
+2020-05-31 * "Dividend from GB00B3TYHH97 (100 shares)" #ERI
+  eri_asset: "GB00B3TYHH97"
+  Equity:ERI         100 GBP
+  Income:Dividends  -100 GBP
+
+2020-05-31 * "Capital Return from GB00B3TYHH97" #capital_return
+  capital_return_asset: "GB00B3TYHH97"
+  Assets:Cash      140 GBP
+  Income:Capital  -140 GBP
+
+2020-06-01 * "Sell GB00B3TYHH97" #sell
+  Assets:Stocks   -100 GB00B3TYHH97 {} @ 25 GBP
+  Assets:Cash     2500 GBP
+  Income:Capital

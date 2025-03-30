@@ -1,0 +1,62 @@
+option "title" "BuySellAllBuyAgainCapitalReturn.txt"
+option "operating_currency" "GBP"
+1970-01-01 open Assets:Stocks                                    "FIFO"
+
+1970-01-01 open Assets:Cash                                      "FIFO"
+
+1970-01-01 open Income:Dividends                                 "FIFO"
+
+1970-01-01 open Income:Capital                                   "FIFO"
+
+1970-01-01 open Expenses:Fees                                    "FIFO"
+
+1970-01-01 open Equity:ERI                                       "FIFO"
+
+1970-01-01 open Income:ERI                                       "FIFO"
+
+1970-01-01 custom "uk-tax-config" "ignored-currencies" "GBP"
+
+1970-01-01 commodity GB00B3TYHH97
+
+1970-01-01 commodity GBP
+
+2010-01-01 custom "fava-extension" "beancount_plugin_tax_uk.fava_extension" "{}"
+
+2010-01-01 custom "uk-tax-config" "commission-account" "Expenses:Fees"
+
+2018-01-01 * "Buy GB00B3TYHH97" #buy
+  Assets:Stocks        50 GB00B3TYHH97 {184.65 GBP}
+  Assets:Cash    -9245.00 GBP
+  Expenses:Fees      12.5 GBP
+
+2019-01-01 * "Buy GB00B3TYHH97" #buy
+  Assets:Stocks        50 GB00B3TYHH97 {181.56 GBP}
+  Assets:Cash    -9080.00 GBP
+  Expenses:Fees         2 GBP
+
+2019-02-01 * "Sell GB00B3TYHH97" #sell
+  Assets:Stocks       -100 GB00B3TYHH97 {} @ 194.22 GBP
+  Assets:Cash     19409.50 GBP
+  Income:Capital
+  Expenses:Fees       12.5 GBP
+
+2019-04-01 * "Buy GB00B3TYHH97" #buy
+  Assets:Stocks        40 GB00B3TYHH97 {196.89 GBP}
+  Assets:Cash    -7877.60 GBP
+  Expenses:Fees         2 GBP
+
+2019-05-31 * "Dividend from GB00B3TYHH97 (40 shares)" #ERI
+  eri_asset: "GB00B3TYHH97"
+  Equity:ERI         150.24 GBP
+  Income:Dividends  -150.24 GBP
+
+2019-05-31 * "Capital Return from GB00B3TYHH97" #capital_return
+  capital_return_asset: "GB00B3TYHH97"
+  Assets:Cash      149.75 GBP
+  Income:Capital  -149.75 GBP
+
+2019-06-01 * "Sell GB00B3TYHH97" #sell
+  Assets:Stocks       -40 GB00B3TYHH97 {} @ 197.12 GBP
+  Assets:Cash     7872.30 GBP
+  Income:Capital
+  Expenses:Fees      12.5 GBP

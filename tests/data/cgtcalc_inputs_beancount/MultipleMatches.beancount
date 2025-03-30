@@ -1,0 +1,63 @@
+option "title" "MultipleMatches.txt"
+option "operating_currency" "GBP"
+1970-01-01 open Assets:Stocks                                    "FIFO"
+
+1970-01-01 open Assets:Cash                                      "FIFO"
+
+1970-01-01 open Income:Dividends                                 "FIFO"
+
+1970-01-01 open Income:Capital                                   "FIFO"
+
+1970-01-01 open Expenses:Fees                                    "FIFO"
+
+1970-01-01 open Equity:ERI                                       "FIFO"
+
+1970-01-01 open Income:ERI                                       "FIFO"
+
+1970-01-01 custom "uk-tax-config" "ignored-currencies" "GBP"
+
+1970-01-01 commodity GB00B41YBW71
+
+1970-01-01 commodity GBP
+
+2010-01-01 custom "fava-extension" "beancount_plugin_tax_uk.fava_extension" "{}"
+
+2010-01-01 custom "uk-tax-config" "commission-account" "Expenses:Fees"
+
+2017-08-28 * "Buy GB00B41YBW71" #buy
+  Assets:Stocks     10 GB00B41YBW71 {4.1 GBP}
+  Assets:Cash    -53.5 GBP
+  Expenses:Fees   12.5 GBP
+
+2018-08-28 * "Buy GB00B41YBW71" #buy
+  Assets:Stocks        10 GB00B41YBW71 {4.1565 GBP}
+  Assets:Cash    -54.0650 GBP
+  Expenses:Fees      12.5 GBP
+
+2018-08-28 * "Sell GB00B41YBW71" #sell
+  Assets:Stocks       -10 GB00B41YBW71 {} @ 4.6702 GBP
+  Assets:Cash     34.2020 GBP
+  Income:Capital
+  Expenses:Fees      12.5 GBP
+
+2019-08-28 * "Sell GB00B41YBW71" #sell
+  Assets:Stocks       -10 GB00B41YBW71 {} @ 4.6702 GBP
+  Assets:Cash     34.2020 GBP
+  Income:Capital
+  Expenses:Fees      12.5 GBP
+
+2019-09-20 * "Buy GB00B41YBW71" #buy
+  Assets:Stocks        10 GB00B41YBW71 {4.1565 GBP}
+  Assets:Cash    -54.0650 GBP
+  Expenses:Fees      12.5 GBP
+
+2020-08-28 * "Buy GB00B41YBW71" #buy
+  Assets:Stocks        10 GB00B41YBW71 {4.1565 GBP}
+  Assets:Cash    -54.0650 GBP
+  Expenses:Fees      12.5 GBP
+
+2020-10-28 * "Sell GB00B41YBW71" #sell
+  Assets:Stocks       -10 GB00B41YBW71 {} @ 4.6702 GBP
+  Assets:Cash     34.2020 GBP
+  Income:Capital
+  Expenses:Fees      12.5 GBP

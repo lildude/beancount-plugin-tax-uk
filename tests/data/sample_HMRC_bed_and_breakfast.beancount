@@ -1,0 +1,62 @@
+; Examples of Bed and Breakfast transactions
+; https://www.gov.uk/hmrc-internal-manuals/capital-gains-manual/cg51560
+
+1970-01-01 open Assets:StockBroker:X
+1970-01-01 open Assets:StockBroker:Y
+1970-01-01 open Assets:StockBroker:Z
+1970-01-01 open Income:StockBroker:PnL
+1970-01-01 open Expenses:StockBroker:Commissions
+1970-01-01 open Assets:StockBroker:Cash
+
+1970-01-01 custom "uk-tax-config" "ignored-currencies" "GBP"
+
+; Example 1 - Miss A's transactions
+; Miss A has a Section 104 holding of 1,000 ordinary £1 shares in X plc. On 1 July 2011 she sells the whole 1,000 shares. She buys the same number of ordinary £1 shares in X plc on 31 July 2011.
+
+; Initial holding assumed to be from earlier date
+2011-01-01 * "Initial Section 104 holding of X plc" #buy
+  Assets:StockBroker:X                        1000 X {1.00 GBP}
+  Assets:StockBroker:Cash                    -1000.00 GBP
+
+2011-07-01 * "Sell X plc" #sell
+  Assets:StockBroker:X                       -1000 X {} @ 1.20 GBP
+  Assets:StockBroker:Cash                     1200.00 GBP
+  Income:StockBroker:PnL
+
+2011-07-31 * "Buy X plc" #buy
+  Assets:StockBroker:X                        1000 X {1 GBP}
+  Assets:StockBroker:Cash                    -1000.00 GBP
+
+
+; Example 2 - Mr B's transactions
+; Mr B has a Section 104 holding of 2,500 ordinary 10p shares in Y plc. On 27 March 2012 he sells 1,700 shares. On 30 March 2012 he buys another 500 10p shares in Y plc.
+
+; Initial holding assumed to be from earlier date
+2012-01-01 * "Initial Section 104 holding of Y plc" #buy
+  Assets:StockBroker:Y                        2500 Y {0.10 GBP}
+  Assets:StockBroker:Cash                    -250.00 GBP
+
+2012-03-27 * "Sell Y plc" #sell
+  Assets:StockBroker:Y                       -1700 Y {} @ 0.12 GBP
+  Assets:StockBroker:Cash                     204.00 GBP
+  Income:StockBroker:PnL
+
+2012-03-30 * "Buy Y plc" #buy
+  Assets:StockBroker:Y                         500 Y {0.1 GBP}
+  Assets:StockBroker:Cash                     -50.00 GBP
+
+; Example 3 - Mrs C's transactions
+; Mrs C has a Section 104 holding of 10,000 ordinary 25p shares in Z plc. On 28 February 2009 she sells 2,000 shares. On 31 March 2009 she buys another 3,000 of the same shares.
+; Initial holding assumed to be from earlier date
+2009-01-01 * "Initial Section 104 holding of Z plc" #buy
+  Assets:StockBroker:Z                       10000 Z {0.25 GBP}
+  Assets:StockBroker:Cash                   -2500.00 GBP
+
+2009-02-28 * "Sell Z plc" #sell
+  Assets:StockBroker:Z                       -2000 Z {} @ 0.30 GBP
+  Assets:StockBroker:Cash                     600.00 GBP
+  Income:StockBroker:PnL
+
+2009-03-31 * "Buy Z plc" #buy
+  Assets:StockBroker:Z                        3000 Z {0.25 GBP}
+  Assets:StockBroker:Cash                    -750.00 GBP 

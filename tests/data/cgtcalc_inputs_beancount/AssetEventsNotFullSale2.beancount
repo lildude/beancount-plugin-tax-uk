@@ -1,0 +1,67 @@
+option "title" "AssetEventsNotFullSale2.txt"
+option "operating_currency" "GBP"
+1970-01-01 open Assets:Stocks                                    "FIFO"
+
+1970-01-01 open Assets:Cash                                      "FIFO"
+
+1970-01-01 open Income:Dividends                                 "FIFO"
+
+1970-01-01 open Income:Capital                                   "FIFO"
+
+1970-01-01 open Expenses:Fees                                    "FIFO"
+
+1970-01-01 open Equity:ERI                                       "FIFO"
+
+1970-01-01 open Income:ERI                                       "FIFO"
+
+1970-01-01 custom "uk-tax-config" "ignored-currencies" "GBP"
+
+1970-01-01 commodity FOOBAR
+
+1970-01-01 commodity GBP
+
+2010-01-01 custom "fava-extension" "beancount_plugin_tax_uk.fava_extension" "{}"
+
+2010-01-01 custom "uk-tax-config" "commission-account" "Expenses:Fees"
+
+2019-08-01 * "Buy FOOBAR" #buy
+  Assets:Stocks     10 FOOBAR {100 GBP}
+  Assets:Cash    -1000 GBP
+
+2019-09-01 * "Sell FOOBAR" #sell
+  Assets:Stocks    -5 FOOBAR {} @ 105 GBP
+  Assets:Cash     525 GBP
+  Income:Capital
+
+2020-01-01 * "Buy FOOBAR" #buy
+  Assets:Stocks    10 FOOBAR {90 GBP}
+  Assets:Cash    -900 GBP
+
+2020-04-01 * "Dividend from FOOBAR (15 shares)" #ERI
+  eri_asset: "FOOBAR"
+  Equity:ERI         30 GBP
+  Income:Dividends  -30 GBP
+
+2020-04-01 * "Capital Return from FOOBAR" #capital_return
+  capital_return_asset: "FOOBAR"
+  Assets:Cash      50 GBP
+  Income:Capital  -50 GBP
+
+2020-06-01 * "Buy FOOBAR" #buy
+  Assets:Stocks    10 FOOBAR {80 GBP}
+  Assets:Cash    -800 GBP
+
+2020-07-01 * "Sell FOOBAR" #sell
+  Assets:Stocks    -20 FOOBAR {} @ 100 GBP
+  Assets:Cash     2000 GBP
+  Income:Capital
+
+2021-04-01 * "Dividend from FOOBAR (5 shares)" #ERI
+  eri_asset: "FOOBAR"
+  Equity:ERI         10 GBP
+  Income:Dividends  -10 GBP
+
+2021-04-01 * "Capital Return from FOOBAR" #capital_return
+  capital_return_asset: "FOOBAR"
+  Assets:Cash      10 GBP
+  Income:Capital  -10 GBP

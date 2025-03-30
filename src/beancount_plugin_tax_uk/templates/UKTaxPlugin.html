@@ -1,0 +1,232 @@
+{% extends "_layout.html" %}
+
+{% block content %}
+<div class="uk-cgt">
+    <h2>UK Capital Gains And Other Taxes</h2>
+
+    {% set report = extension.tax_report() %}
+    {% if report.years %}
+        <div class="year-selector">
+            <div class="year-selector-left">
+                <label for="tax-year">Tax Year:</label>
+                <select id="tax-year" name="tax-year" onchange="showYear(this.value)">
+                    {% for year in report.years %}
+                        <option value="{{ year }}">{{ year }}/{{ year + 1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <a href="download_spreadsheet" target="_blank" rel="noopener noreferrer" class="button">Download Spreadsheet</a>
+        </div>
+
+        {% for year in report.years %}
+        <div class="year-section" id="year-{{ year }}" style="display: none;">
+            <h3>Tax Year {{ year - 1 }}/{{ year }}</h3>
+
+            <div class="summary-table">
+                <h4>Summary by Category</h4>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Number of Events</th>
+                            <th>Disposal Proceeds</th>
+                            <th>Allowable Costs</th>
+                            <th>Total Gains</th>
+                            <th>Total Losses</th>
+                            <th>Total Taxable Gains</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for group in report.groups %}
+                            {% if report.summaries[year].get(group) and group != '_total_capital_gains' %}
+                            <tr>
+                                <td>{{ group }}</td>
+                                <td class="num">{{ report.summaries[year][group].event_count }}</td>
+                                <td class="num">£{{ "{:,.2f}".format(report.summaries[year][group].disposal_proceeds) }}</td>
+                                <td class="num">£{{ "{:,.2f}".format(report.summaries[year][group].allowable_cost) }}</td>
+                                <td class="num gain">£{{ "{:,.2f}".format(report.summaries[year][group].total_gains) }}</td>
+                                <td class="num loss">£{{ "{:,.2f}".format(report.summaries[year][group].total_losses) }}</td>
+                                <td class="num {% if report.summaries[year][group].total_taxable_gains >= 0 %}gain{% else %}loss{% endif %}">£{{ "{:,.2f}".format(report.summaries[year][group].total_taxable_gains) }}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="6"><strong>Total Capital Gains</strong></td>
+                            <td class="num {% if report.summaries[year]['_total_capital_gains'].total_taxable_gains >= 0 %}gain{% else %}loss{% endif %}">£{{ "{:,.2f}".format(report.summaries[year]['_total_capital_gains'].total_taxable_gains) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            {% for group in report.groups %}
+                {% if report.events[year].get(group) and group != '_total_capital_gains' %}
+                <div class="events-section">
+                    <h4>{{ group }}</h4>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Rule</th>
+                                <th>Asset</th>
+                                <th>Proceeds</th>
+                                <th>Cost</th>
+                                <th>Gain/Loss</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in report.events[year][group] %}
+                            <tr>
+                                <td><a href="../../journal/?time={{ event.date }}">{{ event.date }}</a></td>
+                                <td>{{ event.event_type }}</td>
+                                <td>{{ event.details.rule if event.details and 'rule' in event.details else '' }}</td>
+                                <td>{{ event.asset }}</td>
+                                <td class="num">£{{ "{:,.2f}".format(event.proceeds) }}</td>
+                                <td class="num">£{{ "{:,.2f}".format(event.cost) }}</td>
+                                <td class="num {% if event.gain >= 0 %}gain{% else %}loss{% endif %}">£{{ "{:,.2f}".format(event.gain) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No relevant transactions found in the ledger.</p>
+    {% endif %}
+</div>
+
+<style>
+.uk-cgt {
+    padding: 1rem;
+}
+
+.year-selector {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.year-selector-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+select {
+    padding: 0.5rem;
+    min-width: 150px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    height: 2.5rem;
+}
+
+.button {
+    padding: 0 1.5rem !important;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.5rem;
+    line-height: 2.5rem;
+    margin-left: auto;
+    color: #ffffff;
+}
+
+.button:visited {
+    color: #ffffff;
+}
+
+.button:hover {
+    background-color: #45a049;
+}
+
+.year-section {
+    margin-bottom: 4rem;
+    padding-bottom: 2rem;
+}
+
+.year-section h3 {
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #666;
+}
+
+.summary-table {
+    margin-bottom: 3rem;
+}
+
+.events-section {
+    margin-bottom: 3rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.events-section h4 {
+    margin-top: 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #eee;
+}
+
+.num {
+    text-align: right;
+    font-family: monospace;
+}
+
+table.table td.gain,
+table.table td.num.gain {
+    color: #3daf46 !important;
+}
+
+table.table td.loss,
+table.table td.num.loss {
+    color: #af3d3d !important;
+}
+
+table.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+table.table th,
+table.table td {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+}
+
+table.table th {
+    font-weight: bold;
+    /* background-color: #e0e0e0; */
+}
+
+.total-row {
+    font-weight: bold;
+}
+
+.total-row td {
+    border-top: 2px solid #666;
+}
+
+a.button:visited {
+    color: #ffffff;
+}
+
+</style>
+
+<!-- <script type="module">
+window.showYear = UKTaxPlugin.showYear;
+document.addEventListener('DOMContentLoaded', () => UKTaxPlugin.initializeTaxView());
+
+</script> -->
+{% endblock %} 

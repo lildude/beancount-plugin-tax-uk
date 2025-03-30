@@ -1,0 +1,31 @@
+; https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/972646/HS284_Example_3_2021.pdf
+; https://www.gov.uk/government/publications/shares-and-capital-gains-tax-hs284-self-assessment-helpsheet/hs284-shares-and-capital-gains-tax-2021
+
+1970-01-01 open Assets:StockBroker:LOB "FIFO"
+1970-01-01 open Income:StockBroker:PnL
+1970-01-01 open Expenses:StockBroker:Commissions
+1970-01-01 open Assets:StockBroker:Cash
+
+1970-01-01 custom "uk-tax-config" "ignored-currencies" "GBP"
+
+2014-04-01 * "Buy LOB" #buy
+  Assets:StockBroker:LOB                      1000 LOB {4.00 GBP}
+  Expenses:StockBroker:Commissions             150.00 GBP
+  Assets:StockBroker:Cash                      -4150.00 GBP
+
+2017-09-01 * "Buy LOB" #buy
+  Assets:StockBroker:LOB                      500 LOB {4.10 GBP}
+  Expenses:StockBroker:Commissions              80.00 GBP
+  Assets:StockBroker:Cash                      -2130.00 GBP
+
+2021-05-01 * "Sell LOB" #sell
+  Assets:StockBroker:LOB                       -700 LOB {} @ 4.80 GBP
+  Assets:StockBroker:Cash                      3260.00 GBP
+  Expenses:StockBroker:Commissions             100.00 GBP
+  Income:StockBroker:PnL
+
+2022-02-01 * "Sell LOB" #sell
+  Assets:StockBroker:LOB                       -400 LOB {} @ 5.20 GBP
+  Assets:StockBroker:Cash                      1975.00 GBP
+  Expenses:StockBroker:Commissions             105.00 GBP
+  Income:StockBroker:PnL 
