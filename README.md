@@ -1,4 +1,4 @@
-# Beancount Tax UK
+# Beancount Plugin Tax UK
 
 A plugin for [Beancount](https://beancount.github.io/) that generates UK tax reports for capital gains, dividends and other investment income.
 
