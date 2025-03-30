@@ -130,7 +130,7 @@ This plugin is designed to work with UK tax rules (even for that case, see the d
 
 ## See also
 A list of projects with similar functionality or just potentially useful:
-* https://github.com/Evernight/lazy-beancount - Beancount pre-packaged in Docker with plugins, in case you're just starting with Beancount or want to upgrade your experience
-* https://github.com/mattjgalloway/cgtcalc - tax reporting for UK from custom format, written in Swift
-* https://github.com/KapJI/capital-gains-calculator - tax reporting for UK, with few selected platforms supported
-* https://github.com/BittyTax/BittyTax - tax reporting for UK, only for crypto
+* 🪙 [Evernight/lazy-beancount](https://github.com/Evernight/lazy-beancount) - Beancount pre-packaged in Docker with plugins, in case you're just starting with Beancount or want to upgrade your experience
+* 🧮 [mattjgalloway/cgtcalc](https://github.com/mattjgalloway/cgtcalc) - tax reporting for UK from custom format, written in Swift
+* 🧮 [KapJI/capital-gains-calculator](https://github.com/KapJI/capital-gains-calculator) - tax reporting for UK, with few selected platforms supported
+* 🧮 [BittyTax/BittyTax](https://github.com/BittyTax/BittyTax) - tax reporting for UK, only for crypto
