@@ -6,9 +6,9 @@ A plugin for [Beancount](https://beancount.github.io/) that generates UK tax rep
 
 **This software is provided "as is" without warranty of any kind. The author is neither an accountant nor a finance specialist. Please verify all calculations and consult with a qualified tax professional. This tool is meant to assist with tax calculations but should not be solely relied upon for tax filing purposes.**
 
-> \[!NOTE]
+> \[!WARNING]
 >
-> For now there are some edge cases where the plugin is known to provide an incorrect result. Read for details on verification below. However, it is supposed to work for straightforward general cases, also please star / leave a feedback to express interest in improving the code.
+> For now there are some edge cases where the plugin is known to provide an incorrect result. Read for details on verification below. However, it is supposed to work for straightforward general cases.
 
 ## Functionality
 
