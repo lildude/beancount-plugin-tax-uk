@@ -122,7 +122,7 @@ make test
 
 Note differences in the test results mentioned [on the tests README page](tests/README.md).
 
-If you have more anonymised test cases to contribute, particularly if the results are verified/confirmed in some way and/or contain some cases not covered by the current tests, please do contribute.
+If you have more test cases to contribute, particularly if the results are verified/confirmed in some way and/or contain some cases not covered by the current tests, please share.
 
 ## What about other countries?
 
