@@ -8,7 +8,7 @@ A plugin for [Beancount](https://beancount.github.io/) that generates UK tax rep
 
 > \[!WARNING]
 >
-> For now there are some edge cases where the plugin is known to provide an incorrect result. Read for details on verification below. However, it is supposed to work for straightforward general cases.
+> For now there are some edge cases where the plugin is known to provide an incorrect result. Read for details on verification [below](README.md#verification-and-tests). However, it is supposed to work for straightforward general cases.
 
 ## Functionality
 
@@ -69,7 +69,7 @@ Example transactions:
   Expenses:Commissions          2.00 GBP
 ```
 
-More examples are available as ```beancount``` files in the test data.
+More examples are available as ```beancount``` files in the [test data folder](tests/data).
 You can start Fava with multiple ledgers available via a dropdown selector using ```show_tests_in_fava.sh``` script.
 
 ### Optional plugin configuration
@@ -120,7 +120,7 @@ Note that at this point while some cases are treated identically, there are a fe
 make test
 ```
 
-Note differences in the test results mentioned [on the tests README](tests/README.md).
+Note differences in the test results mentioned [on the tests README page](tests/README.md).
 
 If you have more anonymised test cases to contribute, particularly if the results are verified/confirmed in some way and/or contain some cases not covered by the current tests, please do contribute.
 
