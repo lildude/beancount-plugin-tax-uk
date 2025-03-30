@@ -27,6 +27,11 @@ build: clean
 	@echo "Building package..."
 	python -m build
 
+init-dev:
+	python -m venv .venv
+	. .venv/bin/activate
+	pip install -e ".[testing]"
+
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf build/ dist/ *.egg-info/ 
