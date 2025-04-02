@@ -14,13 +14,25 @@ const UKTaxPlugin = {
         if (selectedSection) {
             selectedSection.style.display = 'block';
         }
+
+        // Save selected year to local storage
+        localStorage.setItem('selectedTaxYear', year);
     },
 
     onExtensionPageLoad(ctx) {
         console.log('Initializing tax view');
         const yearSelect = document.querySelector('#tax-year');
-        if (yearSelect && yearSelect.value) {
-            this.showYear(yearSelect.value);
+        
+        // Try to load saved year from local storage
+        const savedYear = localStorage.getItem('selectedTaxYear');
+        
+        if (yearSelect) {
+            if (savedYear) {
+                yearSelect.value = savedYear;
+            }
+            if (yearSelect.value) {
+                this.showYear(yearSelect.value);
+            }
         }
         window.showYear = this.showYear;
     }
