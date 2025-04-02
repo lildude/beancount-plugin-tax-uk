@@ -295,11 +295,12 @@ def generate_tax_related_events(
                     if p.units.number > 0:
                         total_units_incoming += p.units.number
                     else:
-                        total_units_outgoing += p.units.number
-
+                        total_units_outgoing -= p.units.number
+                    currency = p.cost.currency
                 quantity += p.units.number
 
         if type == TaxRelatedEventType.STOCK_SPLIT:
+            logging.debug(f"Stock split: {asset} {total_units_incoming} / {total_units_outgoing}")
             multiplier = total_units_incoming / total_units_outgoing
             quantity = multiplier  # store multiplier as quantity
 
