@@ -230,7 +230,7 @@ def generate_tax_related_events(
             if config.ignored_account_regex.match(p.account):
                 pass
             elif config.commission_account_regex.match(p.account):
-                commission = p.units.number
+                commission += p.units.number
             elif config.income_account_regex.match(p.account):
                 # Process every type of event where values are defined by the Income posting
                 if type in [
@@ -300,7 +300,9 @@ def generate_tax_related_events(
                 quantity += p.units.number
 
         if type == TaxRelatedEventType.STOCK_SPLIT:
-            logging.debug(f"Stock split: {asset} {total_units_incoming} / {total_units_outgoing}")
+            logging.debug(
+                f"Stock split: {asset} {total_units_incoming} / {total_units_outgoing}"
+            )
             multiplier = total_units_incoming / total_units_outgoing
             quantity = multiplier  # store multiplier as quantity
 

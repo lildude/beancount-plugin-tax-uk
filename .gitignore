@@ -1,0 +1,9 @@
+# Pytest
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Build artifacts and egg-info
+src/*.egg-info/
+__pycache__/
