@@ -1,0 +1,2 @@
+[fava.extensions]
+uk_cgt = beancount_plugin_tax_uk.fava_extension:UKCapitalGainsTax
