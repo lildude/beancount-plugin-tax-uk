@@ -18,124 +18,64 @@ from openpyxl.utils import get_column_letter
     "test_files",
     [
         pytest.param(
-            (
-                "trivial_sample.beancount",
-                "test_report_trivial_sample.xlsx",
-                "test_report_trivial_sample.pkl",
-            ),
-            id="trivial_sample",
+            ("trivial_sample.beancount", "test_report_trivial_sample.xlsx", "test_report_trivial_sample.pkl"),
+            id="trivial_sample"
         ),
         pytest.param(
-            (
-                "sample_KapJI_cgc.beancount",
-                "test_report_KapJI_cgc.xlsx",
-                "test_report_KapJI_cgc.pkl",
-            ),
-            id="sample_KapJI_cgc",
+            ("sample_KapJI_cgc.beancount", "test_report_KapJI_cgc.xlsx", "test_report_KapJI_cgc.pkl"),
+            id="sample_KapJI_cgc"
         ),
         pytest.param(
-            (
-                "sample_HS284_Example_3_2021.beancount",
-                "test_report_HS284_Example_3_2021.xlsx",
-                "test_report_HS284_Example_3_2021.pkl",
-            ),
-            id="sample_HS284_Example_3_2021",
+            ("sample_HS284_Example_3_2021.beancount", "test_report_HS284_Example_3_2021.xlsx", "test_report_HS284_Example_3_2021.pkl"),
+            id="sample_HS284_Example_3_2021"
         ),
         pytest.param(
-            (
-                "sample_HMRC_bed_and_breakfast.beancount",
-                "test_report_HMRC_bed_and_breakfast.xlsx",
-                "test_report_HMRC_bed_and_breakfast.pkl",
-            ),
-            id="sample_HMRC_bed_and_breakfast",
+            ("sample_HMRC_bed_and_breakfast.beancount", "test_report_HMRC_bed_and_breakfast.xlsx", "test_report_HMRC_bed_and_breakfast.pkl"),
+            id="sample_HMRC_bed_and_breakfast"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/WithAssetEvents.beancount",
-                "report_WithAssetEvents.xlsx",
-                "report_WithAssetEvents.pkl",
-            ),
-            id="WithAssetEvents",
+            ("cgtcalc_inputs_beancount/WithAssetEvents.beancount", "report_WithAssetEvents.xlsx", "report_WithAssetEvents.pkl"),
+            id="WithAssetEvents"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/Blank.beancount",
-                "report_Blank.xlsx",
-                "report_Blank.pkl",
-            ),
-            id="Blank",
+            ("cgtcalc_inputs_beancount/Blank.beancount", "report_Blank.xlsx", "report_Blank.pkl"),
+            id="Blank"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/SameDayMerge.beancount",
-                "report_SameDayMerge.xlsx",
-                "report_SameDayMerge.pkl",
-            ),
-            id="SameDayMerge",
+            ("cgtcalc_inputs_beancount/SameDayMerge.beancount", "report_SameDayMerge.xlsx", "report_SameDayMerge.pkl"),
+            id="SameDayMerge"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/SameDayMergeInterleaved.beancount",
-                "report_SameDayMergeInterleaved.xlsx",
-                "report_SameDayMergeInterleaved.pkl",
-            ),
-            id="SameDayMergeInterleaved",
+            ("cgtcalc_inputs_beancount/SameDayMergeInterleaved.beancount", "report_SameDayMergeInterleaved.xlsx", "report_SameDayMergeInterleaved.pkl"),
+            id="SameDayMergeInterleaved"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/WithAssetEventsMultipleYears.beancount",
-                "report_WithAssetEventsMultipleYears.xlsx",
-                "report_WithAssetEventsMultipleYears.pkl",
-            ),
-            id="WithAssetEventsMultipleYears",
+            ("cgtcalc_inputs_beancount/WithAssetEventsMultipleYears.beancount", "report_WithAssetEventsMultipleYears.xlsx", "report_WithAssetEventsMultipleYears.pkl"),
+            id="WithAssetEventsMultipleYears"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/HMRCExample1.beancount",
-                "report_HMRCExample1.xlsx",
-                "report_HMRCExample1.pkl",
-            ),
-            id="HMRCExample1",
+            ("cgtcalc_inputs_beancount/HMRCExample1.beancount", "report_HMRCExample1.xlsx", "report_HMRCExample1.pkl"),
+            id="HMRCExample1"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/WithAssetEventsSameDay.beancount",
-                "report_WithAssetEventsSameDay.xlsx",
-                "report_WithAssetEventsSameDay.pkl",
-            ),
-            id="WithAssetEventsSameDay",
+            ("cgtcalc_inputs_beancount/WithAssetEventsSameDay.beancount", "report_WithAssetEventsSameDay.xlsx", "report_WithAssetEventsSameDay.pkl"),
+            id="WithAssetEventsSameDay"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/MultipleMatches.beancount",
-                "report_MultipleMatches.xlsx",
-                "report_MultipleMatches.pkl",
-            ),
-            id="MultipleMatches",
+            ("cgtcalc_inputs_beancount/MultipleMatches.beancount", "report_MultipleMatches.xlsx", "report_MultipleMatches.pkl"),
+            id="MultipleMatches"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/BuySellAllBuyAgainCapitalReturn.beancount",
-                "report_BuySellAllBuyAgainCapitalReturn.xlsx",
-                "report_BuySellAllBuyAgainCapitalReturn.pkl",
-            ),
-            id="BuySellAllBuyAgainCapitalReturn",
+            ("cgtcalc_inputs_beancount/BuySellAllBuyAgainCapitalReturn.beancount", "report_BuySellAllBuyAgainCapitalReturn.xlsx", "report_BuySellAllBuyAgainCapitalReturn.pkl"),
+            id="BuySellAllBuyAgainCapitalReturn"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/Simple.beancount",
-                "report_Simple.xlsx",
-                "report_Simple.pkl",
-            ),
-            id="Simple",
+            ("cgtcalc_inputs_beancount/Simple.beancount", "report_Simple.xlsx", "report_Simple.pkl"),
+            id="Simple"
         ),
         pytest.param(
-            (
-                "cgtcalc_inputs_beancount/CarryLoss.beancount",
-                "report_CarryLoss.xlsx",
-                "report_CarryLoss.pkl",
-            ),
-            id="CarryLoss",
+            ("cgtcalc_inputs_beancount/CarryLoss.beancount", "report_CarryLoss.xlsx", "report_CarryLoss.pkl"),
+            id="CarryLoss"
         ),
     ],
 )
