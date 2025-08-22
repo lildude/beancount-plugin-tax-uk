@@ -230,7 +230,7 @@ def generate_tax_related_events(
             if config.ignored_account_regex.match(p.account):
                 pass
             elif config.commission_account_regex.match(p.account):
-                commission = p.units.number
+                commission += p.units.number
             elif config.income_account_regex.match(p.account):
                 # Process every type of event where values are defined by the Income posting
                 if type in [
