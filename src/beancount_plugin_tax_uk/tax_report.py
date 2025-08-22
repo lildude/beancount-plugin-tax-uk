@@ -624,7 +624,7 @@ def generate_tax_report(
                 pool.last_disposal_date = cur_datetime.date()
 
             elif item.type == TaxRelatedEventType.STOCK_SPLIT:
-                r["Buy Quantity"] = f'x {item.quantity}'
+                r["Buy Quantity"] = f"x {item.quantity}"
                 # stock split multiplier is stored as quantity
                 pool.total_quantity *= Decimal(item.quantity)
 

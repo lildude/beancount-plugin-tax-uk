@@ -300,7 +300,9 @@ def generate_tax_related_events(
                 quantity += p.units.number
 
         if type == TaxRelatedEventType.STOCK_SPLIT:
-            logging.debug(f"Stock split: {asset} {total_units_incoming} / {total_units_outgoing}")
+            logging.debug(
+                f"Stock split: {asset} {total_units_incoming} / {total_units_outgoing}"
+            )
             multiplier = total_units_incoming / total_units_outgoing
             quantity = multiplier  # store multiplier as quantity
 
