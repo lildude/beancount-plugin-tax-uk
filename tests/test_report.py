@@ -210,3 +210,121 @@ def test_tax_report(capture_output, tmp_path, test_files):
                 assert cell1.value == cell2.value, (
                     f"Spreadsheet mismatch at {get_column_letter(col)}{row}: {cell1.value} != {cell2.value}"
                 )
+
+
+def test_commission_split_in_s104_and_bb():
+    """
+    Test that commission is distributed proportionally when a SELL transaction
+    is split between S104 and B&B rules, not duplicated.
+    """
+    from decimal import Decimal
+    import tempfile
+    import os
+
+    # Create test beancount content
+    beancount_content = """
+option "title" "Commission Split Test"
+option "operating_currency" "GBP"
+
+1970-01-01 open Assets:Broker:Stocks
+1970-01-01 open Assets:Broker:Cash
+1970-01-01 open Expenses:Broker:Commissions
+1970-01-01 open Income:Broker:PnL
+
+1970-01-01 custom "uk-tax-config" "ignored-currencies" "GBP"
+1970-01-01 custom "uk-tax-config" "commission-account" "Expenses:Broker:Commissions"
+
+1970-01-01 commodity TESTSTOCK
+1970-01-01 commodity GBP
+
+; Buy 1000 shares first to create S104 pool
+2023-01-01 * "Buy shares for S104 pool" #buy
+  Assets:Broker:Stocks        1000 TESTSTOCK {10.00 GBP}
+  Assets:Broker:Cash        -10000.00 GBP
+
+; Sell 500 shares with commission - this should split between S104 and B&B
+2023-06-01 * "Sell with commission - should split between S104 and B&B" #sell
+  Assets:Broker:Stocks        -500 TESTSTOCK {} @ 12.00 GBP
+  Assets:Broker:Cash          5980.00 GBP
+  Expenses:Broker:Commissions   20.00 GBP
+  Income:Broker:PnL
+
+; Buy back 300 shares the next day - this should trigger B&B rules
+2023-06-02 * "Buy back next day - triggers B&B" #buy
+  Assets:Broker:Stocks         300 TESTSTOCK {11.00 GBP}
+  Assets:Broker:Cash         -3300.00 GBP
+"""
+
+    # Write to temporary file
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".beancount", delete=False) as f:
+        f.write(beancount_content)
+        temp_file = f.name
+
+    try:
+        # Load and process the test data
+        entries, errors, options_map = loader.load_file(temp_file)
+        assert not errors, f"Beancount loading errors: {errors}"
+
+        tax_events = generate_tax_related_events(entries, options_map)
+        rows, tax_report_df, asset_type_mapping = generate_tax_report(
+            entries, tax_events, rate_converter=BeancountRateConverter(entries)
+        )
+
+        # Filter to SELL events only
+        sell_events = tax_report_df[tax_report_df["event_type"] == "Sell"]
+
+        # Should have exactly 2 SELL rows (one B&B, one S104)
+        assert len(sell_events) == 2, f"Expected 2 SELL rows, got {len(sell_events)}"
+
+        # Check that one is B&B and one is S104 by looking at the details dict
+        bb_rows = []
+        s104_rows = []
+
+        for idx, row in sell_events.iterrows():
+            details = row["details"]
+            if isinstance(details, dict) and details.get("rule") == "B&B":
+                bb_rows.append(row)
+            elif isinstance(details, dict) and details.get("rule") == "S104":
+                s104_rows.append(row)
+
+        assert len(bb_rows) == 1, f"Expected 1 B&B row, got {len(bb_rows)}"
+        assert len(s104_rows) == 1, f"Expected 1 S104 row, got {len(s104_rows)}"
+
+        bb_row = bb_rows[0]
+        s104_row = s104_rows[0]
+
+        # Extract the values for verification
+        bb_allowable_cost = bb_row["allowable_cost"]
+        s104_allowable_cost = s104_row["allowable_cost"]
+
+        # Verify commission distribution
+        # B&B: 300 shares out of 500 = 60% of commission = 12.00 GBP
+        # Expected B&B allowable cost: (300 * 11.00) + 12.00 = 3312.00
+        expected_bb_cost = Decimal("3312.00")
+
+        # S104: 200 shares out of 500 = 40% of commission = 8.00 GBP
+        # Expected S104 allowable cost: (200/1000 * 10000) + 8.00 = 2008.00
+        expected_s104_cost = Decimal("2008.00")
+
+        # Convert to Decimal for precise comparison
+        actual_bb_cost = Decimal(str(bb_allowable_cost))
+        actual_s104_cost = Decimal(str(s104_allowable_cost))
+
+        assert actual_bb_cost == expected_bb_cost, (
+            f"B&B allowable cost mismatch: expected {expected_bb_cost}, got {actual_bb_cost}"
+        )
+        assert actual_s104_cost == expected_s104_cost, (
+            f"S104 allowable cost mismatch: expected {expected_s104_cost}, got {actual_s104_cost}"
+        )
+
+        # Verify total commission is exactly 20.00 (not duplicated to 40.00)
+        total_commission_effect = (actual_bb_cost - Decimal("3300.00")) + (
+            actual_s104_cost - Decimal("2000.00")
+        )
+        assert total_commission_effect == Decimal("20.00"), (
+            f"Total commission effect should be 20.00, got {total_commission_effect}"
+        )
+
+    finally:
+        # Clean up temp file
+        os.unlink(temp_file)

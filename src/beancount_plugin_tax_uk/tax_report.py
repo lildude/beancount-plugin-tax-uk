@@ -331,11 +331,22 @@ def generate_tax_report(
         if item.type == TaxRelatedEventType.BUY and item.asset_type == AssetType.CFD:
             continue
 
+        # Calculate total quantity for this transaction to distribute commission proportionally
+        total_transaction_quantity = sum(match[1] for match in item.matched)
+
         for match_index, match in enumerate(
             item.matched
         ):  # Debug output for current item
             matched_row_index, match_quantity, match_rule = match
             cur_datetime = datetime.datetime.fromtimestamp(int(item.timestamp) / 1000)
+
+            # Calculate proportional commission for this match
+            if total_transaction_quantity > 0:
+                proportional_commission = item.fee_value * (
+                    match_quantity / total_transaction_quantity
+                )
+            else:
+                proportional_commission = Decimal(0)
 
             if verbose:
                 logging.debug(f"Item: {dataclasses.asdict(item)}")
@@ -403,7 +414,7 @@ def generate_tax_report(
                 r["Sell Price"] = ""
                 r["Sell Value in GBP"] = ""
 
-                r["Fee Value in Currency"] = Decimal(item.fee_value) or 0
+                r["Fee Value in Currency"] = proportional_commission
 
                 fee_in_gbp = r["Fee Value in Currency"] * r["Currency to GBP rate"]
 
@@ -553,7 +564,7 @@ def generate_tax_report(
                     r["Sell Value in Currency"] * r["Currency to GBP rate"]
                 )
 
-                r["Fee Value in Currency"] = Decimal(item.fee_value) or 0
+                r["Fee Value in Currency"] = proportional_commission
 
                 fee_in_gbp = r["Fee Value in Currency"] * r["Currency to GBP rate"]
 
