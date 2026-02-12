@@ -1,3 +1,14 @@
+"""
+Tax report generation module.
+
+This module contains the logic for generating the UK CGT tax report.
+The code looks like this (e.g. generating rows with named columns)because it was based around writing a spreadsheet
+(and historically was migrated from manually maintained spreadsheet)
+
+The spreadsheet rows correspond to taxable events and groupped by tax year.
+Tax years are followed by summary with calculated/aggregated values for the year.
+"""
+
 import copy
 import dataclasses
 import datetime
@@ -20,6 +31,9 @@ from .models import (
 
 
 class AssetPool:
+    """
+    Asset pool for Section 104 tax calculations.
+    """
     def __init__(self):
         self.transactions = []
         self.total_cost = 0
@@ -29,8 +43,11 @@ class AssetPool:
 
 @dataclass
 class TaxableEventInfo:
+    """
+    Structure to store information about a taxable event for further aggregation and reporting
+    """
     event_type: str = ""
-    event_count: int = 1
+    event_count: int = 1 # usually 1, 0 in case it is already counted as part of another event
     date: str = ""
     disposal_proceeds: Decimal = 0
     allowable_cost: Decimal = 0
@@ -52,8 +69,6 @@ def get_date_datetime(timestamp: int) -> datetime.datetime:
 
 def classify_asset(item: Dict[str, Any]) -> str:
     """Classify an asset based on its type and event type."""
-    if item["asset_type"] == AssetType.CFD.value:
-        return TaxableGainGroup.UNLISTED_SHARES.value
     if item["asset_type"] == AssetType.CRYPTO.value:
         if item["event_type"] == TaxRelatedEventType.INCOME.value:
             return TaxableGainGroup.OTHER_INCOME.value
@@ -79,7 +94,7 @@ def match_transactions(
     i: int,
     j: int,
     rule: str,
-    stock_splits: List[TaxRelatedEventWithMatches],
+    stock_splits: List[TaxRelatedEventWithMatches], # List of stock splits for the asset
 ) -> None:
     """
     Sell transaction is on i-th position, buy transaction is on j-th position (j > i, so buy is later event)
@@ -87,8 +102,14 @@ def match_transactions(
     This may split buy or sell operations and create new items in the list
     """
 
+    stock_split_multiplier = Decimal(1.0)
+    for stock_split in stock_splits:
+        if tr_list[i].timestamp < stock_split.timestamp < tr_list[j].timestamp:
+            # Stock split is between the sell and buy transactions
+            stock_split_multiplier *= stock_split.quantity # multiplier stored in "quantity" field
+
     item_sq = tr_list[i].remaining_quantity
-    match_bq = tr_list[j].remaining_quantity
+    match_bq = tr_list[j].remaining_quantity / stock_split_multiplier # Normalize to pre-split amount (when sold)
 
     matched_quantity = min(item_sq, match_bq)
 
@@ -101,16 +122,16 @@ def match_transactions(
         f"Type: {tr_list[j].type.value} | Quantity: {tr_list[j].remaining_quantity} | "
         f"Price: {tr_list[j].price} | Platform: {tr_list[j].platform} | "
         f"\nRule: {rule} | Matched Quantity: {matched_quantity} | "
+        f"Stock Split Multiplier: {stock_split_multiplier} | "
         f"Remaining Sell: {tr_list[i].remaining_quantity - matched_quantity} | "
-        f"Remaining Buy: {tr_list[j].remaining_quantity - matched_quantity}\n"
+        f"Remaining Buy: {tr_list[j].remaining_quantity - matched_quantity * stock_split_multiplier}\n"
     )
 
-    tr_list[i].matched.append((j, matched_quantity, rule))
-    tr_list[j].matched.append((i, matched_quantity, rule))
+    tr_list[i].matched.append((j, matched_quantity, rule, stock_split_multiplier))
+    tr_list[j].matched.append((i, matched_quantity * stock_split_multiplier, rule, stock_split_multiplier))
 
     tr_list[i].remaining_quantity -= matched_quantity
-    tr_list[j].remaining_quantity -= matched_quantity
-
+    tr_list[j].remaining_quantity -= matched_quantity * stock_split_multiplier
 
 def generate_matches(
     input_transactions_list: List[TaxRelatedEventWithMatches],
@@ -132,7 +153,6 @@ def generate_matches(
             if (
                 item.type != TaxRelatedEventType.SELL
                 or item.remaining_quantity < EPS
-                or item.asset_type == AssetType.CFD
             ):
                 i += 1
                 continue
@@ -145,9 +165,6 @@ def generate_matches(
             j = 0
             while j < len(transactions_list):
                 candidate = transactions_list[j]
-                if candidate.asset_type == AssetType.CFD:
-                    j += 1
-                    continue
                 # Should Vest event be matcheable?
                 if (
                     item.asset != candidate.asset
@@ -195,7 +212,7 @@ def generate_matches(
     for i, item in enumerate(transactions_list):
         if item.remaining_quantity >= EPS or not item.matched:
             # Create items even for types of operations where Quantity = 0
-            item.matched.append((i, item.remaining_quantity, TaxRule.SECTION_104.value))
+            item.matched.append((i, item.remaining_quantity, TaxRule.SECTION_104.value, Decimal(1.0)))
             item.remaining_quantity = 0
 
     return transactions_list
@@ -314,6 +331,7 @@ def generate_tax_report(
         TaxRelatedEventWithMatches(event=tr) for tr in tax_related_events
     ]
 
+    # Actually match the same day and bed and breakfast transactions with each other
     transactions_with_matches = generate_matches(transactions_with_matches)
 
     # Then generate rows
@@ -328,16 +346,13 @@ def generate_tax_report(
         if item.asset_type:
             asset_type_mapping[item.asset] = item.asset_type
 
-        if item.type == TaxRelatedEventType.BUY and item.asset_type == AssetType.CFD:
-            continue
-
         # Calculate total quantity for this transaction to distribute commission proportionally
         total_transaction_quantity = sum(match[1] for match in item.matched)
 
         for match_index, match in enumerate(
             item.matched
-        ):  # Debug output for current item
-            matched_row_index, match_quantity, match_rule = match
+        ):
+            matched_row_index, match_quantity, match_rule, stock_split_multiplier = match
             cur_datetime = datetime.datetime.fromtimestamp(int(item.timestamp) / 1000)
 
             # Calculate proportional commission for this match
@@ -383,7 +398,7 @@ def generate_tax_report(
                 r["Asset"] = asset
                 r["Platform"] = item.platform
 
-            r["Rule"] = match_rule
+            r["Rule"] = match_rule if item.type != TaxRelatedEventType.STOCK_SPLIT else ""
 
             r["Currency"] = item.currency
 
@@ -441,40 +456,6 @@ def generate_tax_report(
                             chargeable_gain=r["Buy Value in GBP"],
                         )
                     )
-            elif item.asset_type == AssetType.CFD or item.type in [
-                TaxRelatedEventType.INCOME,
-            ]:
-                # TODO: not sure if this (CFD handling) works correctly
-                r["Sell Quantity"] = Decimal(item.quantity) if item.quantity else ""
-                r["Sell Value in Currency"] = (
-                    item.event.profit_in_currency
-                    if hasattr(item.event, "profit_in_currency")
-                    else None
-                )
-                r["Sell Value in GBP"] = (
-                    r["Sell Value in Currency"] * r["Currency to GBP rate"]
-                    if r["Sell Value in Currency"] is not None
-                    else None
-                )
-                r["Chargeable gain"] = r["Sell Value in GBP"]
-
-                taxable_events[
-                    TaxYearSummaryKey(
-                        tax_year_dividers[current_tax_year_idx].year,
-                        asset,
-                        item.asset_type.value,
-                    )
-                ].append(
-                    TaxableEventInfo(
-                        event_type=item.type.value,
-                        date=cur_datetime,
-                        disposal_proceeds=r["Sell Value in GBP"],
-                        allowable_cost=0,
-                        chargeable_gain=r["Chargeable gain"],
-                    )
-                )
-
-                pool.last_disposal_date = cur_datetime.date()
             elif item.type in [TaxRelatedEventType.ERI]:
                 # Increase the cost basis of the asset
                 r["Buy Value in Currency"] = Decimal(item.price)
@@ -575,9 +556,6 @@ def generate_tax_report(
                     if pool.total_quantity <= 0:
                         # Avoid division by zero
                         assert False, f"ERROR for {item}, empty pool"
-                        # logging.error(f"ERROR for {item}, empty pool")
-                        # r["Allowable cost"] = 0
-                        # r["Error"] = f"ERROR for {item}, empty pool"
                     else:
                         r["Allowable cost"] = (
                             r["Sell Quantity"] / pool.total_quantity * pool.total_cost
@@ -593,7 +571,7 @@ def generate_tax_report(
                         print(f"r={r}")
                 else:
                     buy_transaction = transactions_with_matches[matched_row_index]
-                    buy_value = Decimal(buy_transaction.price) * Decimal(match_quantity)
+                    buy_value = Decimal(buy_transaction.price) * Decimal(match_quantity) * Decimal(stock_split_multiplier)
                     buy_ts = int(buy_transaction.timestamp) / 1000
                     buy_rate = rate_converter.get_rate(buy_ts, buy_transaction.currency)
                     buy_value_gbp = (
@@ -601,6 +579,8 @@ def generate_tax_report(
                     )
 
                     r["Allowable cost"] = buy_value_gbp
+
+                    r["Comment"] = f"Matched with {match_quantity * stock_split_multiplier} shares on {get_date_datetime(int(buy_transaction.timestamp) / 1000).date()}"
 
                 r["Chargeable gain"] = (
                     r["Sell Value in GBP"] - r["Allowable cost"] - fee_in_gbp
