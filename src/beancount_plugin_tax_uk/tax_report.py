@@ -34,6 +34,7 @@ class AssetPool:
     """
     Asset pool for Section 104 tax calculations.
     """
+
     def __init__(self):
         self.transactions = []
         self.total_cost = 0
@@ -46,8 +47,11 @@ class TaxableEventInfo:
     """
     Structure to store information about a taxable event for further aggregation and reporting
     """
+
     event_type: str = ""
-    event_count: int = 1 # usually 1, 0 in case it is already counted as part of another event
+    event_count: int = (
+        1  # usually 1, 0 in case it is already counted as part of another event
+    )
     date: str = ""
     disposal_proceeds: Decimal = 0
     allowable_cost: Decimal = 0
@@ -94,7 +98,9 @@ def match_transactions(
     i: int,
     j: int,
     rule: str,
-    stock_splits: List[TaxRelatedEventWithMatches], # List of stock splits for the asset
+    stock_splits: List[
+        TaxRelatedEventWithMatches
+    ],  # List of stock splits for the asset
 ) -> None:
     """
     Sell transaction is on i-th position, buy transaction is on j-th position (j > i, so buy is later event)
@@ -106,10 +112,14 @@ def match_transactions(
     for stock_split in stock_splits:
         if tr_list[i].timestamp < stock_split.timestamp < tr_list[j].timestamp:
             # Stock split is between the sell and buy transactions
-            stock_split_multiplier *= stock_split.quantity # multiplier stored in "quantity" field
+            stock_split_multiplier *= (
+                stock_split.quantity
+            )  # multiplier stored in "quantity" field
 
     item_sq = tr_list[i].remaining_quantity
-    match_bq = tr_list[j].remaining_quantity / stock_split_multiplier # Normalize to pre-split amount (when sold)
+    match_bq = (
+        tr_list[j].remaining_quantity / stock_split_multiplier
+    )  # Normalize to pre-split amount (when sold)
 
     matched_quantity = min(item_sq, match_bq)
 
@@ -128,10 +138,13 @@ def match_transactions(
     )
 
     tr_list[i].matched.append((j, matched_quantity, rule, stock_split_multiplier))
-    tr_list[j].matched.append((i, matched_quantity * stock_split_multiplier, rule, stock_split_multiplier))
+    tr_list[j].matched.append(
+        (i, matched_quantity * stock_split_multiplier, rule, stock_split_multiplier)
+    )
 
     tr_list[i].remaining_quantity -= matched_quantity
     tr_list[j].remaining_quantity -= matched_quantity * stock_split_multiplier
+
 
 def generate_matches(
     input_transactions_list: List[TaxRelatedEventWithMatches],
@@ -150,10 +163,7 @@ def generate_matches(
         while i < len(transactions_list):
             item = transactions_list[i]
 
-            if (
-                item.type != TaxRelatedEventType.SELL
-                or item.remaining_quantity < EPS
-            ):
+            if item.type != TaxRelatedEventType.SELL or item.remaining_quantity < EPS:
                 i += 1
                 continue
 
@@ -212,7 +222,9 @@ def generate_matches(
     for i, item in enumerate(transactions_list):
         if item.remaining_quantity >= EPS or not item.matched:
             # Create items even for types of operations where Quantity = 0
-            item.matched.append((i, item.remaining_quantity, TaxRule.SECTION_104.value, Decimal(1.0)))
+            item.matched.append(
+                (i, item.remaining_quantity, TaxRule.SECTION_104.value, Decimal(1.0))
+            )
             item.remaining_quantity = 0
 
     return transactions_list
@@ -349,10 +361,10 @@ def generate_tax_report(
         # Calculate total quantity for this transaction to distribute commission proportionally
         total_transaction_quantity = sum(match[1] for match in item.matched)
 
-        for match_index, match in enumerate(
-            item.matched
-        ):
-            matched_row_index, match_quantity, match_rule, stock_split_multiplier = match
+        for match_index, match in enumerate(item.matched):
+            matched_row_index, match_quantity, match_rule, stock_split_multiplier = (
+                match
+            )
             cur_datetime = datetime.datetime.fromtimestamp(int(item.timestamp) / 1000)
 
             # Calculate proportional commission for this match
@@ -398,7 +410,9 @@ def generate_tax_report(
                 r["Asset"] = asset
                 r["Platform"] = item.platform
 
-            r["Rule"] = match_rule if item.type != TaxRelatedEventType.STOCK_SPLIT else ""
+            r["Rule"] = (
+                match_rule if item.type != TaxRelatedEventType.STOCK_SPLIT else ""
+            )
 
             r["Currency"] = item.currency
 
@@ -571,7 +585,11 @@ def generate_tax_report(
                         print(f"r={r}")
                 else:
                     buy_transaction = transactions_with_matches[matched_row_index]
-                    buy_value = Decimal(buy_transaction.price) * Decimal(match_quantity) * Decimal(stock_split_multiplier)
+                    buy_value = (
+                        Decimal(buy_transaction.price)
+                        * Decimal(match_quantity)
+                        * Decimal(stock_split_multiplier)
+                    )
                     buy_ts = int(buy_transaction.timestamp) / 1000
                     buy_rate = rate_converter.get_rate(buy_ts, buy_transaction.currency)
                     buy_value_gbp = (
@@ -580,7 +598,9 @@ def generate_tax_report(
 
                     r["Allowable cost"] = buy_value_gbp
 
-                    r["Comment"] = f"Matched with {match_quantity * stock_split_multiplier} shares on {get_date_datetime(int(buy_transaction.timestamp) / 1000).date()}"
+                    r["Comment"] = (
+                        f"Matched with {match_quantity * stock_split_multiplier} shares on {get_date_datetime(int(buy_transaction.timestamp) / 1000).date()}"
+                    )
 
                 r["Chargeable gain"] = (
                     r["Sell Value in GBP"] - r["Allowable cost"] - fee_in_gbp

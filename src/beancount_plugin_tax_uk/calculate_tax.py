@@ -6,6 +6,7 @@ import re
 import sys
 import time
 import pprint
+from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Optional, List, Dict
@@ -58,9 +59,7 @@ def parse_tag_to_type_option(
         tag = tag.strip()
         type_name = type_name.strip().upper()
         if not tag:
-            raise click.BadParameter(
-                "Tag must be provided for --tag-to-type mappings"
-            )
+            raise click.BadParameter("Tag must be provided for --tag-to-type mappings")
         if type_name in {"NONE", "NULL"}:
             mapping[tag] = None
             continue
@@ -236,6 +235,12 @@ def generate_tax_related_events(
 
     transactions = [e for e in entries if isinstance(e, Transaction)]
 
+    # Build link index: link string -> list of transactions
+    link_to_transactions: Dict[str, list] = defaultdict(list)
+    for t in transactions:
+        for link in t.links or set():
+            link_to_transactions[link].append(t)
+
     effective_tag_to_type: Dict[str, Optional[TaxRelatedEventType]] = TAG_TO_TYPE.copy()
     if tag_to_type:
         effective_tag_to_type.update(tag_to_type)
@@ -355,6 +360,16 @@ def generate_tax_related_events(
             )
             multiplier = total_units_incoming / total_units_outgoing
             quantity = multiplier  # store multiplier as quantity
+
+        # Gather expenses from linked transactions for sell events and add to commission
+        if type == TaxRelatedEventType.SELL:
+            for link in t.links or set():
+                for linked_t in link_to_transactions.get(link, []):
+                    if linked_t is t:
+                        continue  # Skip the sell transaction itself
+                    for p in linked_t.postings:
+                        if p.account.startswith("Expenses:"):
+                            commission += p.units.number
 
         result = TaxRelatedEvent(
             event_type=type,

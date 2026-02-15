@@ -138,20 +138,44 @@ from openpyxl.utils import get_column_letter
             id="CarryLoss",
         ),
         pytest.param(
-            ("cgtcalc_inputs_beancount/WithSplitBB.beancount", "report_WithSplitBB.xlsx", "report_WithSplitBB.pkl"),
-            id="WithSplitBB"
+            (
+                "cgtcalc_inputs_beancount/WithSplitBB.beancount",
+                "report_WithSplitBB.xlsx",
+                "report_WithSplitBB.pkl",
+            ),
+            id="WithSplitBB",
         ),
         pytest.param(
-            ("cgtcalc_inputs_beancount/WithSplitS104.beancount", "report_WithSplitS104.xlsx", "report_WithSplitS104.pkl"),
-            id="WithSplitS104"
+            (
+                "cgtcalc_inputs_beancount/WithSplitS104.beancount",
+                "report_WithSplitS104.xlsx",
+                "report_WithSplitS104.pkl",
+            ),
+            id="WithSplitS104",
         ),
         pytest.param(
-            ("cgtcalc_inputs_beancount/WithUnsplitBB.beancount", "report_WithUnsplitBB.xlsx", "report_WithUnsplitBB.pkl"),
-            id="WithUnsplitBB"
+            (
+                "cgtcalc_inputs_beancount/WithUnsplitBB.beancount",
+                "report_WithUnsplitBB.xlsx",
+                "report_WithUnsplitBB.pkl",
+            ),
+            id="WithUnsplitBB",
         ),
         pytest.param(
-            ("cgtcalc_inputs_beancount/WithUnsplitS104.beancount", "report_WithUnsplitS104.xlsx", "report_WithUnsplitS104.pkl"),
-            id="WithUnsplitS104"
+            (
+                "cgtcalc_inputs_beancount/WithUnsplitS104.beancount",
+                "report_WithUnsplitS104.xlsx",
+                "report_WithUnsplitS104.pkl",
+            ),
+            id="WithUnsplitS104",
+        ),
+        pytest.param(
+            (
+                "cgtcalc_inputs_beancount/MultiTransactionFees.beancount",
+                "report_MultiTransactionFees.xlsx",
+                "report_MultiTransactionFees.pkl",
+            ),
+            id="MultiTransactionFees",
         ),
     ],
 )

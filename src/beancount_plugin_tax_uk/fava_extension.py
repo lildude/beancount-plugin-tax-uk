@@ -112,10 +112,10 @@ class UKTaxPlugin(FavaExtensionBase):
 
     def convert_row_for_template(self, row: OrderedDict) -> Dict[str, Any]:
         """Convert a row from the tax report to a format suitable for the template.
-        
+
         Args:
             row: OrderedDict containing row data
-            
+
         Returns:
             Dictionary with serialized values (datetime to string, Decimal to float)
         """
