@@ -1,0 +1,48 @@
+option "title" "MultiTransactionFees"
+option "operating_currency" "GBP"
+
+1970-01-01 open Assets:MorganStanley:MSFT                        "FIFO"
+1970-01-01 open Assets:MorganStanley:Cash                        "FIFO"
+1970-01-01 open Assets:Cash:Wise:USD                             "FIFO"
+1970-01-01 open Assets:Cash:Wise:GBP                             "FIFO"
+1970-01-01 open Assets:Cash:Starling:Current                     "FIFO"
+1970-01-01 open Expenses:USInvestments:Fees                      "FIFO"
+1970-01-01 open Expenses:Wise:USD:Fees                           "FIFO"
+1970-01-01 open Expenses:Wise:GBP:Fees                           "FIFO"
+1970-01-01 open Income:Investments:USTaxable:CapitalGains        "FIFO"
+
+1970-01-01 custom "uk-tax-config" "ignored-currencies" "GBP" "USD"
+1970-01-01 custom "uk-tax-config" "commission-account" "Expenses:USInvestments:Fees"
+
+1970-01-01 commodity MSFT
+1970-01-01 commodity GBP
+1970-01-01 commodity USD
+
+2019-01-02 price USD                      0.7839001411 GBP
+
+2019-01-02 * "(BUY) Bought MSFT - 130 @ 101.57 USD" #buy
+  Assets:MorganStanley:MSFT                        130 MSFT {101.57 USD} @ 101.57 USD
+  Assets:MorganStanley:Cash                  -13204.10 USD
+
+2019-01-17 price USD                            0.7590 GBP
+
+2019-01-17 * "(SELL) Sold MSFT - 130 @ 105 USD" #sell ^sale-2019-01-17
+  Assets:MorganStanley:MSFT                       -130 MSFT {} @ 105 USD
+  Expenses:USInvestments:Fees                     4.95 USD
+  Expenses:USInvestments:Fees                     0.18 USD
+  Assets:MorganStanley:Cash                   13644.87 USD
+  Income:Investments:USTaxable:CapitalGains
+
+2019-01-18 * "Transfer from Morgan Stanley to Wise" ^sale-2019-01-17
+  Assets:Cash:Wise:USD                        13644.87 USD
+  Assets:MorganStanley:Cash                  -13644.87 USD
+
+2019-01-25 * "Wise" "USD to GBP" ^sale-2019-01-17
+  Assets:Cash:Wise:USD                       -13644.87 USD
+  Expenses:Wise:USD:Fees                         81.38 USD
+  Assets:Cash:Wise:GBP                        10294.42 GBP @@ 13563.49 USD
+
+2019-01-28 * "Transfer from Wise to Starling" ^sale-2019-01-17
+  Assets:Cash:Starling:Current                10293.77 GBP
+  Expenses:Wise:GBP:Fees                          0.65 GBP
+  Assets:Cash:Wise:GBP                       -10294.42 GBP
