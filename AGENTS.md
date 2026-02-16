@@ -6,8 +6,9 @@ A Python plugin for [Beancount](https://beancount.github.io/) that generates UK 
 
 ## Quick Validation Checklist
 
-Before making any changes, **ALWAYS** run this validation sequence to ensure your environment is working:
+Before making any changes, **ALWAYS** ensure you are working inside the virtual environment and run this validation sequence:
 
+0. **Activate venv**: `source .venv/bin/activate` (create it first with `make init-dev` if `.venv/` does not exist)
 1. **Test import**: `python -c "import beancount_plugin_tax_uk.calculate_tax; print('Import works')"`
 2. **Format code**: `make format` (takes <1 second)
 3. **Lint code**: `make lint` (takes <1 second)  
@@ -20,7 +21,8 @@ Before making any changes, **ALWAYS** run this validation sequence to ensure you
 ## Working Effectively
 
 Bootstrap the development environment:
-- `make deps-testing` -- Installs package with testing dependencies via pip. Takes ~30 seconds when network allows. NEVER CANCEL. **WARNING**: May fail with network timeouts in restricted environments - this is expected.
+- `make init-dev` -- Creates a `.venv` virtual environment, activates it, and installs the package with testing dependencies. Run this once when setting up the project. **ALWAYS use the venv** — activate it with `source .venv/bin/activate` before running any commands.
+- `make deps-testing` -- Installs package with testing dependencies via pip (use inside the venv). Takes ~30 seconds when network allows. NEVER CANCEL. **WARNING**: May fail with network timeouts in restricted environments - this is expected.
 - `make format` -- Formats code using ruff formatter. Takes <1 second.
 - `make lint` -- Runs ruff linter and formatter checks. Takes <1 second.
 - `make test` -- Runs pytest test suite (15 tests). Takes ~3 seconds. NEVER CANCEL.
@@ -73,6 +75,7 @@ fava tests/data/trivial_sample.beancount --port 5001
 
 **Working with existing installations**:
 If dependencies are already installed but `make deps-testing` fails due to network issues:
+- Ensure the venv is active: `source .venv/bin/activate`
 - Test import: `python -c "import beancount_plugin_tax_uk.calculate_tax; print('Import works')"`
 - If import succeeds, proceed with: `make format` → `make lint` → `make test`
 - Manual validation commands will work with existing installation
@@ -164,6 +167,7 @@ The plugin accepts configuration in Beancount files via custom directives. Key f
 
 ## Important Notes
 
+- **Always work inside the `.venv` virtual environment.** Activate it with `source .venv/bin/activate` before running any commands. If it does not exist, create it with `make init-dev`.
 - This is a tax calculation tool - accuracy is critical. Always verify results manually.
 - The plugin implements UK-specific tax rules (Section 104 holding, bed & breakfast rules, etc.).
 - Test files in `tests/data/` provide examples of supported transaction patterns.
