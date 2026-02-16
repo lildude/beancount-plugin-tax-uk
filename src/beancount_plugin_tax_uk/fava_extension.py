@@ -4,6 +4,8 @@ from typing import List, Dict, Any, Tuple
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from fava.ext import extension_endpoint
+from flask import send_file
+import io
 import tempfile
 import os
 import datetime
@@ -223,9 +225,10 @@ class UKTaxPlugin(FavaExtensionBase):
             # Clean up the temporary file
             os.unlink(tmp.name)
 
-            # Return the file data with appropriate headers
-            headers = {
-                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "Content-Disposition": "attachment; filename=uk_cgt_report.xlsx",
-            }
-            return file_data, 200, headers
+            # Return the file as a download
+            return send_file(
+                io.BytesIO(file_data),
+                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                as_attachment=True,
+                download_name="uk_cgt_report.xlsx",
+            )
