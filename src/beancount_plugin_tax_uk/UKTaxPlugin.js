@@ -1,6 +1,5 @@
 const UKTaxPlugin = {
     init() {
-        console.log("initialising UKTaxPlugin extension");
     },
 
     showYear(year) {
