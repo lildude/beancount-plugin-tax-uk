@@ -311,7 +311,8 @@ def generate_tax_report(
         # Otherwise use current year
         end_year = (
             current_date.year
-            if current_date.month >= 4 and current_date.day >= 6
+            if current_date.month > 4
+            or (current_date.month == 4 and current_date.day >= 6)
             else current_date.year - 1
         )
         if verbose:
