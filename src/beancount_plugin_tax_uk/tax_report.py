@@ -569,8 +569,14 @@ def generate_tax_report(
                     # https://www.gov.uk/hmrc-internal-manuals/capital-gains-manual/cg51560
 
                     if pool.total_quantity <= 0:
-                        # Avoid division by zero
-                        assert False, f"ERROR for {item}, empty pool"
+                        # Pool is empty - this indicates a data issue (e.g. sell
+                        # without prior buy, or mismatched transactions). Log a
+                        # warning and skip this match rather than crashing.
+                        logging.warning(
+                            f"S104 pool empty for {item.asset} when processing "
+                            f"sell: {item}. Skipping this match."
+                        )
+                        r["Allowable cost"] = Decimal(0)
                     else:
                         r["Allowable cost"] = (
                             r["Sell Quantity"] / pool.total_quantity * pool.total_cost
