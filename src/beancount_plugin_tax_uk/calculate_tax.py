@@ -245,6 +245,79 @@ def generate_tax_related_events(
     if tag_to_type:
         effective_tag_to_type.update(tag_to_type)
 
+    def _get_tax_tag(t: Transaction) -> Optional[str]:
+        """Return the mapped tax tag for a transaction, or None if not tax-relevant."""
+        for tag in t.tags or []:
+            mapped_tag = config.tag_mapping.get(tag, tag)
+            if mapped_tag in effective_tag_to_type:
+                return mapped_tag
+        return None
+
+    def _calculate_sell_proceeds(t: Transaction) -> Decimal:
+        """Calculate total disposal proceeds for a sell transaction from its postings."""
+        proceeds = Decimal(0)
+        for p in t.postings:
+            if config.ignored_account_regex.match(p.account):
+                continue
+            if config.commission_account_regex.match(p.account):
+                continue
+            if config.income_account_regex.match(p.account):
+                continue
+            if p.units is not None and p.units.currency in config.ignored_currencies:
+                continue
+            # This is an asset posting - for a sell, it has a price
+            if p.price is not None and p.units.number < 0:
+                proceeds += abs(p.units.number) * p.price.number
+        return proceeds
+
+    # Pre-compute linked fee allocations for sell transactions.
+    # For each link group, fees from non-tax-tagged transactions are split
+    # proportionally among sell transactions based on their disposal proceeds.
+    linked_fee_allocation: Dict[int, Decimal] = {}  # transaction id -> allocated fee
+    links_processed: set = set()
+    for t in transactions:
+        for link in t.links or set():
+            if link in links_processed:
+                continue
+            links_processed.add(link)
+
+            linked_txns = link_to_transactions.get(link, [])
+
+            # Find all sell-tagged transactions in this link group
+            sell_txns = [lt for lt in linked_txns if _get_tax_tag(lt) == "sell"]
+            if not sell_txns:
+                continue
+
+            # Sum fees from non-tax-tagged linked transactions
+            linked_fees = Decimal(0)
+            for lt in linked_txns:
+                if _get_tax_tag(lt) is not None:
+                    continue  # Skip tax-relevant transactions (they have their own fees)
+                for p in lt.postings:
+                    if p.account.startswith("Expenses:"):
+                        linked_fees += p.units.number
+
+            if linked_fees == 0:
+                continue
+
+            # Calculate each sell's proceeds for proportional splitting
+            sell_proceeds: List[tuple] = []
+            total_proceeds = Decimal(0)
+            for st in sell_txns:
+                proceeds = _calculate_sell_proceeds(st)
+                sell_proceeds.append((id(st), proceeds))
+                total_proceeds += proceeds
+
+            # Allocate fees proportionally (or equally if proceeds are zero)
+            for txn_id, proceeds in sell_proceeds:
+                if total_proceeds > 0:
+                    share = linked_fees * proceeds / total_proceeds
+                else:
+                    share = linked_fees / len(sell_txns)
+                linked_fee_allocation[txn_id] = (
+                    linked_fee_allocation.get(txn_id, Decimal(0)) + share
+                )
+
     def convert_transaction(
         t: Transaction,
         config: TaxConfig,
@@ -361,15 +434,27 @@ def generate_tax_related_events(
             multiplier = total_units_incoming / total_units_outgoing
             quantity = multiplier  # store multiplier as quantity
 
-        # Gather expenses from linked transactions for sell events and add to commission
+        # Gather expenses from linked transactions for sell events and add to commission.
+        # Fees from non-tax-tagged linked transactions are split proportionally among
+        # all sell transactions sharing the link based on disposal proceeds.
         if type == TaxRelatedEventType.SELL:
-            for link in t.links or set():
-                for linked_t in link_to_transactions.get(link, []):
-                    if linked_t is t:
-                        continue  # Skip the sell transaction itself
-                    for p in linked_t.postings:
-                        if p.account.startswith("Expenses:"):
-                            commission += p.units.number
+            allocated_fee = linked_fee_allocation.get(id(t), Decimal(0))
+            commission += allocated_fee
+
+        # Skip events where no asset data could be extracted (e.g. cash-only
+        # transfers tagged as sell that only contain operating currency postings)
+        if asset is None and type in (
+            TaxRelatedEventType.SELL,
+            TaxRelatedEventType.BUY,
+            TaxRelatedEventType.VEST,
+            TaxRelatedEventType.STOCK_SPLIT,
+        ):
+            logging.warning(
+                f"Skipping {type.value} transaction with no asset data: "
+                f"{t.meta['filename']}:{t.meta['lineno']} "
+                f"({t.narration})"
+            )
+            return None
 
         result = TaxRelatedEvent(
             event_type=type,
