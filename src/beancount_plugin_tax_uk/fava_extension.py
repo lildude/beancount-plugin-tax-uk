@@ -1,15 +1,13 @@
 """Fava extension for UK Capital Gains Tax calculations."""
 
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
 from fava.ext import extension_endpoint
-from flask import send_file
-import io
-import tempfile
-import os
 import datetime
+import io
 
+import flask
 import pandas as pd
 from fava.ext import FavaExtensionBase
 
@@ -189,7 +187,7 @@ class UKTaxPlugin(FavaExtensionBase):
         return report_data
 
     @extension_endpoint("download_spreadsheet")
-    def download_spreadsheet(self) -> Tuple[bytes, int, Dict[str, str]]:
+    def download_spreadsheet(self) -> flask.Response:
         """Generate and return the tax report spreadsheet file.
 
         Returns:
@@ -214,21 +212,12 @@ class UKTaxPlugin(FavaExtensionBase):
             verbose=False,
         )
 
-        # Create a temporary file to store the spreadsheet
-        with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
-            write_tax_report_spreadsheet(tmp.name, rows, tax_res, asset_type_mapping)
-
-            # Read the file into memory
-            with open(tmp.name, "rb") as f:
-                file_data = f.read()
-
-            # Clean up the temporary file
-            os.unlink(tmp.name)
-
-            # Return the file as a download
-            return send_file(
-                io.BytesIO(file_data),
-                mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                as_attachment=True,
-                download_name="uk_cgt_report.xlsx",
-            )
+        buffer = io.BytesIO()
+        write_tax_report_spreadsheet(buffer, rows, tax_res, asset_type_mapping)
+        buffer.seek(0)
+        return flask.send_file(
+            buffer,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name="uk_cgt_report.xlsx",
+        )

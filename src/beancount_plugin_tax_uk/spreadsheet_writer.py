@@ -1,5 +1,6 @@
+import os
 from collections import OrderedDict
-from typing import Dict, List
+from typing import AnyStr, Dict, IO, List, Union
 
 import pandas as pd
 import xlsxwriter
@@ -35,7 +36,7 @@ CURRENCIES = ["GBP", "USD", "EUR", "Other"]
 
 
 def write_tax_report_spreadsheet(
-    output_filename: str,
+    output_filename: Union[str, IO[AnyStr], os.PathLike],
     rows: List[OrderedDict],
     tax_res: pd.DataFrame,
     asset_type_mapping: Dict[str, AssetType],
